@@ -1,10 +1,10 @@
-from connection.connection import app
 from Router.router import user,product,compra
+from fastapi import FastAPI
 
-app.include_router(user)
+app = FastAPI()
 
 app.include_router(product)
-
+app.include_router(user)
 app.include_router(compra)
 """
 @app.post("/items/crear_tabla_python")

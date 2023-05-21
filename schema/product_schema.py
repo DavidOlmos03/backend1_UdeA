@@ -4,5 +4,5 @@ from typing import Optional
 class productSchema(BaseModel):
     id: Optional[int]
     nombre: str
-    precio: int
+    precio: float
     url_de_imagen: str

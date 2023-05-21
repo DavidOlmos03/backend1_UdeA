@@ -1,130 +1,115 @@
 from fastapi import APIRouter
-from connection.connection import connection
+from connection.connection import engine,session
 from schema.user_schema import UserSchema
 from schema.product_schema import productSchema
 from schema.compra_schema import compraSchema
+from model.user import user_model
+from model.product import product_model
+from typing import List
 
-user = APIRouter()
+
 product = APIRouter()
+user = APIRouter()
 compra = APIRouter()
 
-
-"""""
-@user.get("/api/read_users")
-def get_users():
-    cursor = connection.cursor()
-    consulta = "SELECT * FROM usuarios"
-    cursor.execute(consulta)
-    result = cursor.fetchall()
-    connection.commit()
-    cursor.close()
-    connection.close()
-
-    return result
+                            ###***CRUD TABLE USUARIOS***###
 """
+@user.get("/api/show_table_usuarios")
+def get_users():
+    result =  session.query(user_model).all()
+    return jsonable_encoder(result)
 
-@user.post("/Create_user")
-def create_user(user: UserSchema):
-    cursor = connection.cursor()
-    consulta = "INSERT INTO usuarios (id, nombre, email, contrase) VALUES (%s,%s,%s,%s)"
-    valores = (user.id, user.nombre, user.email, user.contrase)
-    cursor.execute(consulta, valores)
+"""                            
 
-    connection.commit()
-    cursor.close()
-    connection.close()
-    return {"mensaje": "Usuario creado exitosamente"}
+@user.post("/api/Create_new_user")
+def create_user(data_user: UserSchema):
+    new_user = user_model(id = data_user.id, nombre=data_user.nombre, email=data_user.email, contrase=data_user.contrase)
+    session.add(new_user)
+    session.commit()
+    session.refresh(new_user)   
+    return new_user
 
-
-@user.get("/api/read_user/{user_id}")
-def get_user(id: int):
-    cursor = connection.cursor()
-    consulta = f"SELECT * FROM usuarios WHERE id = {id}"
-    cursor.execute(consulta)
-    result = cursor.fetchall()
-    connection.commit()
-    cursor.close()
-    connection.close()
-
+@user.get("/api/read_user")
+def get_users(id: int):
+    result = session.query(user_model).get(id)
     return result
 
 
 @user.put("/api/update_users/{user_id}")
 def update_user(data_update: UserSchema , user_id: int):
-    cursor = connection.cursor()
-    consulta = f"UPDATE usuarios SET nombre = '{data_update.nombre}', email = '{data_update.email}', contrase = '{data_update.contrase}' WHERE id = {user_id}"
-    cursor.execute(consulta)
-    connection.commit()
-    cursor.close()
-    connection.close()
+        db_usuario = session.query(user_model).filter(user_model.id == user_id).first()
+        if db_usuario:
+            # Actualiza los atributos del usuario con los valores proporcionados en usuario_actualizado
+            for key, value in data_update.dict().items():
+                setattr(db_usuario, key, value)
+            session.commit()
+            session.refresh(db_usuario)
+            return {"message": "User updated successfully"}
 
 
 @user.delete("/api/delete_user/{user_id}")
 def delete_user(user_id: int):
-    cursor = connection.cursor()
-    consulta = f"DELETE FROM usuarios WHERE id = {user_id}"
-    cursor.execute(consulta)
-    connection.commit()
-    cursor.close()
-    connection.close()
+    db_usuario = session.query(user_model).filter(user_model.id == user_id).first()
+
+    if db_usuario:
+        session.delete(db_usuario)
+        session.commit()
+        return {"message": "User deleted successfully"}
 
 
-####CRUD PRODUCTO
+                            ###***CRUD TABLE PRODUCTO***###
 @product.post("/Create_product")
-def create_product(product: productSchema):
-    cursor = connection.cursor()
-    consulta = "INSERT INTO producto (id, nombre, precio, url_de_imagen) VALUES (%s,%s,%s,%s)"
-    valores = (product.id, product.nombre, product.precio, product.url_de_imagen)
-    cursor.execute(consulta, valores)
+def create_product(data_product: productSchema):
+    new_product = product_model(id = data_product.id, nombre=data_product.nombre, precio = data_product.precio, url_de_imagen=data_product.url_de_imagen)
+    session.add(new_product)
+    session.commit()
+    session.refresh(new_product)   
+    return new_product
 
-    connection.commit()
-    cursor.close()
-    connection.close()
-    return {"mensaje": "Producto creado exitosamente"}
-
-
+#############HERE
 @product.get("/api/read_product/{product_id}")
 def get_product(id: int):
-    cursor = connection.cursor()
+    cursor = engine.cursor()
     consulta = f"SELECT * FROM producto WHERE id = {id}"
     cursor.execute(consulta)
     result = cursor.fetchall()
-    connection.commit()
+    engine.commit()
     cursor.close()
-    connection.close()
+    engine.close()
 
     return result
 
 
 @product.put("/api/update_product/{product_id}")
 def update_product(data_update: productSchema , product_id: int):
-    cursor = connection.cursor()
+    cursor = engine.cursor()
     consulta = f"UPDATE producto SET nombre = '{data_update.nombre}', precio = '{data_update.precio}', url_de_imagen = '{data_update.url_de_imagen}' WHERE id = {product_id}"
     cursor.execute(consulta)
-    connection.commit()
+    engine.commit()
     cursor.close()
-    connection.close()
+    engine.close()
 
 
 @product.delete("/api/delete_product/{product_id}")
 def delete_product(product_id: int):
-    cursor = connection.cursor()
+    cursor = engine.cursor()
     consulta = f"DELETE FROM producto WHERE id = {product_id}"
     cursor.execute(consulta)
-    connection.commit()
+    engine.commit()
     cursor.close()
-    connection.close()
+    engine.close()
 
 ##WORKING WHITH COMPRA
 @compra.put("/api/update_compra/{id_user}/{id_producto}/{total_productos}")
 def update_compra(id_user: int, id_product: int,total_productos:int):
-    cursor = connection.cursor()
+    cursor = engine.cursor()
     consulta = f"""INSERT INTO compra (usuario_id, producto_id, total_productos)
                     SELECT 
                         (SELECT id FROM usuarios WHERE id = {id_user}),
                         (SELECT id FROM producto WHERE id = {id_product}),
                         '{total_productos}';"""
+    
     cursor.execute(consulta)
-    connection.commit()
+    engine.commit()
     cursor.close()
-    connection.close()
+    engine.close()

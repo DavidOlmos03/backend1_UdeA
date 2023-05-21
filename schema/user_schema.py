@@ -2,7 +2,7 @@ from pydantic import BaseModel
 from typing import Optional
 
 class UserSchema(BaseModel):
-    id: Optional[str]
+    id: Optional[int]
     nombre: str
-    email:str
+    email: str
     contrase: str

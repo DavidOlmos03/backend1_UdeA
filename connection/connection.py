@@ -1,12 +1,13 @@
-import mysql.connector
-from fastapi import FastAPI
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import create_engine,MetaData
+from sqlalchemy.orm import sessionmaker
 
-connection = mysql.connector.connect(
-    host='127.0.0.1',
-    user='root',
-    password = '', 
-    database='p_trabajoudea'
-)
+engine = create_engine('mysql+mysqlconnector://root@localhost/p_trabajoudea')
+meta_data = MetaData()
+Base = declarative_base()
+Session = sessionmaker(bind=engine)
+session = Session()
 
-app = FastAPI()
+
+
 
