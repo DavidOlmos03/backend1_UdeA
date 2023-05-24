@@ -1,13 +1,17 @@
-from sqlalchemy import Column, Integer, ForeignKey
+from sqlalchemy import Column, Integer, ForeignKey, ForeignKeyConstraint
 from connection.connection import Base
 from sqlalchemy.orm import relationship
 from connection.connection import engine
 class compra_model(Base):
     __tablename__ = 'compras'  # Nombre de la tabla en la base de datos
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(Integer, ForeignKey('usuarios.id'))
-    product_id = Column(Integer , ForeignKey('productos.id'))
-    total_products = Column(Integer, nullable=False)
+    product_id = Column(Integer , ForeignKey('producto.id'))
+    total_products = Column(Integer, nullable=True)
 
-    user = relationship("user_model")
-    product = relationship("product_model")
+    __table_args__ = (
+        ForeignKeyConstraint(['user_id'], ['usuarios.id']),
+        ForeignKeyConstraint(['product_id'], ['producto.id'])
+    )
+    #user = relationship("user_model",foreign_keys=[user_id])
+    #product = relationship("product_model",foreign_keys=[product_id])

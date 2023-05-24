@@ -98,20 +98,21 @@ def delete_product(product_id: int):
 
 ##WORKING WHITH COMPRA
 @compra.put("/api/update_compra/{id_user}/{id_producto}/{total_productos}")
-def update_compra(user_id: int,product_id: int , total_products: int, data_compra: compraSchema):
+def update_compra(data_buy: compraSchema):
     # Buscar el usuario y producto por su ID
-    user = session.query(user_model).filter(user_model.id == user_id).first()
-    product = session.query(product_model).filter(product_model.id == product_id).first()
+    user = session.query(user_model).filter(user_model.id == data_buy.user_id).first()
+    product = session.query(product_model).filter(product_model.id == data_buy.product_id).first()
 
     if user is None or product is None:
         return {"message": "Usuario o producto no encontrado"}
     
     # Crear una nueva instancia de Compra
-    #new_buy = compra_model(user_id=data_compra.user_id, product_id=data_compra.product_id, total_products=data_compra.total_products)
-    new_buy = compra_model(user_model=user, product_model=product, total_productos=total_products)
-
+    new_buy = compra_model(user_id=data_buy.user_id, product_id=data_buy.product_id, total_products = data_buy.total_products)
     # Guardar la compra en la base de datos
     session.add(new_buy)
     session.commit()
-
+    session.refresh(new_buy)   
+    ##OBS. Esta funcionando pero al parecer al quitar el id presenta problemas al ingresar nuevos datos
+    ##En ocaciones presenta el error de guardar el ultimo dato y no leer los nuevos
+    ##OBS. Podria mostrar mensaje en fastApi en caso de que esten repitiendo la PK
     return {"message": "Buy created successfully"}
