@@ -2,7 +2,7 @@ from fastapi import APIRouter
 from connection.connection import session
 from schema.user_schema import UserSchema
 from model.user import user_model
-from passlib.hash import bcrypt_sha256##de cifrado mas seguro 
+from passlib.hash import bcrypt_sha256 ##de cifrado mas seguro 
 
 
 user = APIRouter()
@@ -15,6 +15,7 @@ def get_users():
     return jsonable_encoder(result)
 
 """                            
+
 
 @user.post("/api/Create_user", tags=["CrudUser"])
 def create_user(data_user: UserSchema):

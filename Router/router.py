@@ -16,7 +16,6 @@ def update_compra(data_buy: compraSchema):
     user = session.query(user_model).filter(user_model.id == data_buy.user_id).first()
     product = session.query(product_model).filter(product_model.id == data_buy.product_id).first()
 
-    
     if user is None or product is None:
         return {"message": "Usuario o producto no encontrado"}
     
