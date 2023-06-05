@@ -3,6 +3,7 @@ from connection.connection import session
 from schema.user_schema import UserSchema
 from model.user import user_model
 from passlib.hash import bcrypt_sha256 ##de cifrado mas seguro 
+from fastapi.exceptions import HTTPException
 
 
 user = APIRouter()
@@ -19,9 +20,12 @@ def get_users():
 
 @user.post("/api/Create_user", tags=["CrudUser"])
 def create_user(data_user: UserSchema):
+    existing_user = session.query(user_model).filter_by(id=data_user.id).first()
+    if existing_user:
+        session.commit()
+        raise HTTPException(status_code=400, detail=f"User {data_user.id} aleready exists")
     new_user = user_model(id = data_user.id, nombre=data_user.nombre, email=data_user.email, contrase=data_user.contrase)
     new_user.contrase = bcrypt_sha256.hash(new_user.contrase)
-    #new_user = data_user.dict().items()
     session.add(new_user)
     session.commit()
     #session.refresh(new_user)   
@@ -29,9 +33,10 @@ def create_user(data_user: UserSchema):
 
 @user.get("/api/read_user/{user_id}", tags=["CrudUser"])
 def get_users(id: int):
-    result = session.query(user_model).get(id)
-    return result
-
+    user = session.query(user_model).get(id)
+    if not user:
+        raise HTTPException(404,f"User {id} not found")
+    return user
 
 @user.put("/api/update_users/{user_id}", tags=["CrudUser"])
 def update_user(data_update: UserSchema , user_id: int):
@@ -43,6 +48,8 @@ def update_user(data_update: UserSchema , user_id: int):
         session.commit()
         session.refresh(db_usuario)
         return {"message": "User updated successfully"}
+    session.commit()
+    raise HTTPException(404, f"Id {user_id} not found")
 
 
 @user.delete("/api/delete_user/{user_id}", tags=["CrudUser"])
@@ -53,3 +60,5 @@ def delete_user(user_id: int):
         session.delete(db_usuario)
         session.commit()
         return {"message": "User deleted successfully"}
+    session.commit()
+    raise HTTPException(404, f"id {user_id} not found")

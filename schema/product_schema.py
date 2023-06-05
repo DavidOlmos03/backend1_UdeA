@@ -6,3 +6,8 @@ class productSchema(BaseModel):
     nombre: str
     precio: float
     url_de_imagen: str
+
+class productSchemaNoId(BaseModel):
+    nombre: str
+    precio: float
+    url_de_imagen: str
